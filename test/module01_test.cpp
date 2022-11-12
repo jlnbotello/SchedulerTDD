@@ -1,33 +1,59 @@
 #include <gtest/gtest.h>
 #include <../inc/module01.hpp>
 
-
-TEST(CounterTests, Init)
+class CounterTests : public ::testing::Test
 {
-  const int expected = 100;
-  Counter counter(expected);
+protected: 
+  Counter counter;
+
+  void SetUp() override 
+  {
+
+  }
+
+  void TearDown() override 
+  {
+
+  }
+};
+
+TEST_F(CounterTests, Init)
+{
+  const int expected = 0;
+
   int count = counter.getCount();
-  EXPECT_EQ(count, expected); 
+  
+  EXPECT_EQ(expected, count); 
 }
 
-TEST(CounterTests, Increment)
+TEST_F(CounterTests, Increment)
 {
-  Counter counter;
+  const int expected = 1;
+
   counter.increment();
-  EXPECT_EQ(1, counter.getCount());
+  
+  int count = counter.getCount();
+  EXPECT_EQ(expected, count);
 }
 
-TEST(CounterTests, Decrement)
+TEST_F(CounterTests, Decrement)
 {
-  Counter counter;
+  const int expected = -1;
+
   counter.decrement();
-  EXPECT_EQ(-1, counter.getCount());
+  
+  int count = counter.getCount();
+  EXPECT_EQ(expected, count);
 }
 
-TEST(CounterTests, Reset)
+TEST_F(CounterTests, Reset)
 {
-  Counter counter;
+  const int expected = -1;
+
   counter.decrement();
-  counter.reset(3);
-  EXPECT_EQ(3, counter.getCount());
+  counter.reset();
+  counter.decrement();
+
+  int count = counter.getCount();
+  EXPECT_EQ(expected, count);
 }
