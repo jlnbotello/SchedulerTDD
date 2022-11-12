@@ -7,7 +7,7 @@ Counter::Counter(int rst_val, int delta): count(rst_val), delta(delta)
 
 void Counter::increment(int delta)
 {
-
+  count += delta;
 }
 
 void Counter::decrement(int delta)
