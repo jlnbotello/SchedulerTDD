@@ -8,10 +8,14 @@
 class Counter
 {
 public: 
-  Counter(int rst_val, int inc_val);
+  Counter(int rst_val=0, int delta=1);
   void increment(int delta);
   void decrement(int delta);
-  void reset(int val);
+  void reset(int rst_val);
+  int getCount();
+
+private:
+  int count;
 };
 
 
