@@ -16,6 +16,9 @@ set(INC ${INC_DIR}/module01.hpp)
 include_directories(${INC_DIR})
 add_library(${PROJ_NAME} STATIC ${SRC} ${INC})
 
-enable_testing()
+# Including CTest.cmake will automatically enable_testing(), but it also
+# configures the "test configuration file" it's complaining about...
+include(CTest)
 add_subdirectory(googletest)
 add_subdirectory(test)
+
