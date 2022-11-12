@@ -17,7 +17,7 @@ void Counter::decrement(int delta)
 
 void Counter::reset(int rst_val)
 {
-
+ count = rst_val;
 }
 
 int Counter::getCount()
