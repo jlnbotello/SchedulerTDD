@@ -12,15 +12,22 @@ TEST(CounterTests, Init)
 
 TEST(CounterTests, Increment)
 {
-
+  Counter counter;
+  counter.increment();
+  EXPECT_EQ(1, counter.getCount());
 }
 
 TEST(CounterTests, Decrement)
 {
-
+  Counter counter;
+  counter.decrement();
+  EXPECT_EQ(-1, counter.getCount());
 }
 
 TEST(CounterTests, Reset)
 {
-
+  Counter counter;
+  counter.decrement();
+  counter.reset(3);
+  EXPECT_EQ(3, counter.getCount());
 }

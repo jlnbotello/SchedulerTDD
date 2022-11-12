@@ -1,6 +1,6 @@
 #include "module01.hpp"
 
-Counter::Counter(int rst_val, int delta): count(rst_val)
+Counter::Counter(int rst_val, int delta): count(rst_val), delta(delta)
 {
 
 };
