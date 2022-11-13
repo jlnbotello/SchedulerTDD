@@ -10,8 +10,13 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 set(SRC_DIR src)
 set(INC_DIR inc)
-set(SRC ${SRC_DIR}/module01.cpp)
-set(INC ${INC_DIR}/module01.hpp)
+set(SRC 
+  ${SRC_DIR}/module01.cpp
+)
+set(INC
+  ${INC_DIR}/module01.hpp
+  ${INC_DIR}/scheduler.hpp
+)
 
 include_directories(${INC_DIR})
 add_library(${PROJ_NAME} STATIC ${SRC} ${INC})
