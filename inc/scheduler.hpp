@@ -86,12 +86,17 @@ private:
   Expiration expiration;
 };
 
-typedef std::function<void(void)> Action;
+using Action = std::function<void(void)>;
 
 class TimeService
 {
-  TimeService();
+public:
+  TimeService(Datetime dt);  
   Datetime getDatetime();
+  void setDatetime(Datetime dt);
+
+private:
+  Datetime dt;
 };
 
 class Scheduler
@@ -104,10 +109,13 @@ public:
 class Task
 {
 public:
-  Task(std::string name, Action* a, Datetime* dt, Repeat* r, Scheduler* s){/* FixMe: Implement me */};
+  Task(std::string name, Action* a, Datetime* dt, Repeat* r, Scheduler* s);
   void enable();
   void disable();
+  void run();
 
+private:
+ Action * action = nullptr;
 };
 
 #endif /* __SCHEDULER_HPP__ */

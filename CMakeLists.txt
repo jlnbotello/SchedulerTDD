@@ -12,6 +12,7 @@ set(SRC_DIR src)
 set(INC_DIR inc)
 set(SRC 
   ${SRC_DIR}/module01.cpp
+  ${SRC_DIR}/scheduler.cpp
 )
 set(INC
   ${INC_DIR}/module01.hpp
