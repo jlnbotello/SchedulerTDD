@@ -35,7 +35,7 @@ TEST_F(SchedulerTest, RunNullActionIsSafe)
 {
   //Action action = [this]() { return mockAction.Call(); };
   Action action = std::bind(&MockAction::Call, &mockAction);
-  Task task = Task("RunActionNow", nullptr, nullptr, nullptr, nullptr);  
+  Task task = Task("RunActionNow", nullptr, nullptr, nullptr);  
   
   EXPECT_CALL(mockAction, Call()).Times(0);
 
@@ -45,18 +45,35 @@ TEST_F(SchedulerTest, RunNullActionIsSafe)
 TEST_F(SchedulerTest, RunActionNow)
 {
   Action action = std::bind(&MockAction::Call, &mockAction);
-  Task task = Task("RunActionNow", &action, nullptr, nullptr, nullptr);  
+  Task task = Task("RunActionNow", &action, nullptr, nullptr);  
   
   EXPECT_CALL(mockAction, Call()).Times(1);
 
   task.run();
 }
 
-TEST_F(SchedulerTest, ScheduleTask)
+TEST_F(SchedulerTest, NotOnTimeNotTriggered)
 {
   Action action = std::bind(&MockAction::Call, &mockAction);
-  Task task = Task("RunActionNow", &action, nullptr, nullptr, &scheduler);  
+  Datetime task_dt = {2000,1,1,12,0,0};
+
+  Task task = Task("OneTimeAlarm", &action, &task_dt, nullptr); 
+
+  EXPECT_CALL(mockAction, Call()).Times(0);
+
+  scheduler.run(); 
+}
+
+TEST_F(SchedulerTest, OnTimeTriggered )
+{
+  Action action = std::bind(&MockAction::Call, &mockAction);
+  Datetime task_dt = {2000,1,1,12,0,0};
+
+  Task task = Task("OneTimeAlarm", &action, &task_dt, nullptr); 
+
+  EXPECT_CALL(mockAction, Call()).Times(1);
   
+  timeService.setDatetime(task_dt);
 
   scheduler.run();
 }

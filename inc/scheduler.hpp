@@ -15,6 +15,7 @@
 #include <functional>
 #include <string>
 #include <ctime>
+#include <list>
 
 
 typedef struct
@@ -99,24 +100,33 @@ private:
   Datetime dt;
 };
 
-class Scheduler
-{
-public:
-  Scheduler(TimeService timeSrv);
-  void run();
-};
-
 class Task
 {
 public:
-  Task(std::string name, Action* a, Datetime* dt, Repeat* r, Scheduler* s);
+  Task(std::string name, Action* a, Datetime* dt, Repeat* r);
   void enable();
   void disable();
   void run();
+  void run(Datetime dt);
 
 private:
  Action * action = nullptr;
+ Datetime * datetime = nullptr;
 };
+
+class Scheduler
+{
+public:
+  Scheduler(TimeService & timeSrv);
+  void run();
+  bool addTask(Task task);
+
+private:
+  std::list<Task> taskList;
+  TimeService & timeService;  
+};
+
+
 
 #endif /* __SCHEDULER_HPP__ */
 
