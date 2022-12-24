@@ -47,16 +47,7 @@ typedef enum
     EXP_NEVER, EXP_DATE, EXP_AFTER_N
 } ExpirationType;
 
-typedef struct
-{
-  int second;
-  int minute;
-  int hour;
-  int day;
-  int month;
-  int year;
-} Datetime;
-
+typedef struct tm Datetime;
 
 typedef struct
 {
@@ -107,11 +98,12 @@ public:
   void enable();
   void disable();
   void run();
-  void run(Datetime dt);
+  void check(Datetime dtNow);
 
 private:
  Action * action = nullptr;
- Datetime * datetime = nullptr;
+ Datetime * trigDatetime = nullptr;
+ bool enabled = false;
 };
 
 class Scheduler
@@ -119,13 +111,14 @@ class Scheduler
 public:
   Scheduler(TimeService & timeSrv);
   void run();
-  bool addTask(Task task);
+  bool addTask(Task * task);
 
 private:
-  std::list<Task> taskList;
+  std::list<Task*> taskList;
   TimeService & timeService;  
 };
 
+bool operator==(Datetime dt1, Datetime dt2);
 
 
 #endif /* __SCHEDULER_HPP__ */
