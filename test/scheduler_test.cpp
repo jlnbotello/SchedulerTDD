@@ -55,15 +55,19 @@ TEST_F(SchedulerTest, RunActionNow)
 TEST_F(SchedulerTest, NotOnTimeNotTriggered)
 {
   Action action = std::bind(&MockAction::Call, &mockAction);
-  Datetime task_dt;
+  time_t rawTime;
+  time(&rawTime);
+  Datetime * timeInfo = localtime (&rawTime);
+  //printf ("Current local time and date: %s", asctime(timeInfo));
+  Datetime task_dt = (*timeInfo);
   
-  Task task = Task("OneTimeAlarm", &action, &task_dt, nullptr);  //FIXME: initialize datetime with a pointer? good or bad?
+  Task task = Task("OneTimeAlarm", &action, &task_dt, nullptr);
 
   EXPECT_CALL(mockAction, Call()).Times(0);
   
-  Datetime task_dt2 = task_dt;
-  task_dt2.tm_sec = 10;
-  timeService.setDatetime(task_dt);
+  Datetime now = task_dt;
+  now.tm_sec += 1; // set a difference
+  timeService.setDatetime(now);
 
   scheduler.addTask(&task);
   task.enable();
@@ -74,14 +78,18 @@ TEST_F(SchedulerTest, NotOnTimeNotTriggered)
 TEST_F(SchedulerTest, OnTimeTriggered )
 {
   Action action = std::bind(&MockAction::Call, &mockAction);
-  Datetime task_dt; // <-- should be valid datetime... FIXME: init datetime
-  
-
+  time_t rawTime;
+  time(&rawTime);
+  Datetime * timeInfo = localtime (&rawTime);
+  //printf ("Current local time and date: %s", asctime(timeInfo));
+  Datetime task_dt = (*timeInfo);
+ 
   Task task = Task("OneTimeAlarm", &action, &task_dt, nullptr); 
 
   EXPECT_CALL(mockAction, Call()).Times(1);
   
-  timeService.setDatetime(task_dt);
+  Datetime now = task_dt;
+  timeService.setDatetime(now);
 
   scheduler.addTask(&task);
   task.enable();
