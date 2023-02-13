@@ -11,12 +11,14 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(SRC_DIR src)
 set(INC_DIR inc)
 set(SRC 
-  ${SRC_DIR}/module01.cpp
+  #${SRC_DIR}/module01.cpp
   ${SRC_DIR}/scheduler.cpp
+  ${SRC_DIR}/neotimer.cpp
 )
 set(INC
-  ${INC_DIR}/module01.hpp
+  #${INC_DIR}/module01.hpp
   ${INC_DIR}/scheduler.hpp
+  ${INC_DIR}/neotimer.hpp
 )
 
 include_directories(${INC_DIR})

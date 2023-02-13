@@ -1,21 +1,18 @@
 #include "scheduler.hpp"
 
-TimeService::TimeService(Datetime dt)
+Repeat::Repeat(int interval, IntervalUnit unit)
 {
 
-};
-
-Datetime TimeService::getDatetime()
-{
-  return dt;
 }
 
-void TimeService::setDatetime(Datetime dt)
+Repeat::Repeat(WeekSwitch ws, int hour, int min)
 {
-  this->dt = dt;
+
 }
 
-Scheduler::Scheduler(TimeService & timeSrv):timeService{timeSrv}
+
+Scheduler::Scheduler(IDatetime & iD, IMillis & iM):
+iDatetime{iD}, iMillis{iM}
 {
 
 }
@@ -23,18 +20,20 @@ Scheduler::Scheduler(TimeService & timeSrv):timeService{timeSrv}
 void Scheduler::run()
 {
   std::list<Task*>::iterator it = taskList.begin();
-
-    Datetime now = timeService.getDatetime();
+  
     while( it != taskList.end() )
     {
       //printf("Checking task...");
-      (**it).check(now);
+      (*it)->check();
       it++;
     }
 }
 
 bool Scheduler::addTask(Task * task)
 {
+  task->setIDatetime(&iDatetime);
+  task->setIMillis(&iMillis);
+
   taskList.push_back(task);
   return true;
 }
@@ -45,8 +44,24 @@ Task::Task(std::string name, Action* a, Datetime* dt, Repeat* r)
   trigDatetime = dt;
 }
 
+Task::~Task()
+{
+ delete(timer);
+}
+
+void Task::setIDatetime(IDatetime * iD)
+{
+  iDatetime = iD;
+}
+
+void Task::setIMillis(IMillis * iM)
+{
+  iMillis = iM;
+}
+
 void Task::enable()
 {
+  init();
   enabled = true;
 }
 
@@ -64,14 +79,60 @@ void Task::run()
   }  
 }
 
-void Task::check(Datetime currDatetime)
+void Task::check()
 {
-  if(enabled && action && trigDatetime)
+  if(enabled)
   {
-    if((*trigDatetime) == currDatetime)
+    RepeatType repeat_type = repeat ? (repeat->type):(REPEAT_OFF);
+
+    switch (repeat_type)
     {
-      run();
+    case REPEAT_OFF:
+      checkDatetime();
+      break;
+    case REPEAT_INTERVAL:
+      checkInterval();
+      break;
+    case REPEAT_WEEKDAYS:
+      checkWeekday();
+      break;      
+    default:
+      /* code */
+      break;
     }
+  }
+}
+
+void Task::checkInterval()
+{
+  if(!timer) return;
+
+  if(timer->done())
+  {
+      run();
+  } 
+}
+
+void Task::checkDatetime()
+{
+  if(!trigDatetime || !iDatetime) return;
+  
+  if((*trigDatetime) == iDatetime->get())
+  {
+    run();
+  }
+}
+
+void Task::checkWeekday()
+{
+
+}
+
+void Task::init()
+{
+  if(!timer)
+  {
+    timer = new Neotimer(*iMillis);
   }
 }
 

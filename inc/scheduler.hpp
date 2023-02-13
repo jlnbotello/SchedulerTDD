@@ -1,12 +1,12 @@
 /**
  * @file scheduler.hpp
  * @author Julian Botello (jlnbotello@gmail.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2022-11-13
- * 
+ *
  * @copyright Copyright (c) 2022
- * 
+ *
  */
 
 #ifndef __SCHEDULER_HPP__
@@ -16,7 +16,7 @@
 #include <string>
 #include <ctime>
 #include <list>
-
+#include "neotimer.hpp"
 
 typedef struct
 {
@@ -32,7 +32,7 @@ typedef struct
 typedef enum
 {
   INTERVAL_MICROSECOND,
-  INTERVAL_MILISECOND,
+  INTERVAL_MILLISECOND,
   INTERVAL_SECOND,
   INTERVAL_MINUTE,
   INTERVAL_HOUR,
@@ -44,7 +44,9 @@ typedef enum
 
 typedef enum
 {
-    EXP_NEVER, EXP_DATE, EXP_AFTER_N
+  EXP_NEVER,
+  EXP_DATE,
+  EXP_AFTER_N
 } ExpirationType;
 
 typedef struct tm Datetime;
@@ -53,23 +55,23 @@ typedef struct
 {
   int ocurrences;
   Datetime datetime;
-  ExpirationType type; 
+  ExpirationType type;
 } Expiration;
 
 typedef enum
 {
-	REPEAT_OFF,
+  REPEAT_OFF,
   REPEAT_INTERVAL,
   REPEAT_WEEKDAYS
-}	RepeatType;
+} RepeatType;
 
-class Repeat 
+class Repeat
 {
 public:
-  Repeat(int qty, IntervalUnit unit);
+  Repeat(int interval, IntervalUnit unit);
+  Repeat(WeekSwitch ws, int hour, int min);
 
-
-private:
+  // private:
   RepeatType type = REPEAT_OFF;
   bool runActionOnStart = false;
   int intervalValue;
@@ -80,46 +82,57 @@ private:
 
 using Action = std::function<void(void)>;
 
-class TimeService
+class IDatetime
 {
-public:
-  TimeService(Datetime dt);  
-  Datetime getDatetime();
-  void setDatetime(Datetime dt);
-
-private:
-  Datetime dt;
+  public:
+    virtual ~IDatetime() {};
+    virtual Datetime get() = 0;
 };
 
 class Task
 {
 public:
-  Task(std::string name, Action* a, Datetime* dt, Repeat* r);
+  //Task(std::string name, Action *a, Datetime *dt);
+  Task(std::string name, Action *a, Datetime *dt, Repeat *r);  
+  //Task(std::string name, Action *a, Interval *interval);
+  //Task(std::string name, Action *a, Interval *interval, Repeat *r);
+  ~Task();
+  void setIDatetime(IDatetime * iDatetime);
+  void setIMillis(IMillis * iMillis);
   void enable();
   void disable();
   void run();
-  void check(Datetime dtNow);
+  void check();
 
 private:
- Action * action = nullptr;
- Datetime * trigDatetime = nullptr;
- bool enabled = false;
+  Action *action = nullptr;
+  Datetime *trigDatetime = nullptr;
+  Repeat *repeat = nullptr;
+  Neotimer * timer = nullptr;
+  IDatetime * iDatetime = nullptr;
+  IMillis * iMillis = nullptr;
+  bool enabled = false;
+
+  void checkInterval();
+  void checkDatetime();
+  void checkWeekday();
+  void init();
 };
 
 class Scheduler
 {
 public:
-  Scheduler(TimeService & timeSrv);
+  Scheduler(IDatetime & iDatetime, IMillis & iMillis);
   void run();
-  bool addTask(Task * task);
+  bool addTask(Task *task);
 
 private:
-  std::list<Task*> taskList;
-  TimeService & timeService;  
+  std::list<Task *> taskList;
+  IDatetime & iDatetime;
+  IMillis & iMillis;
 };
 
 bool operator==(Datetime dt1, Datetime dt2);
-
 
 #endif /* __SCHEDULER_HPP__ */
 
