@@ -1,16 +1,5 @@
 #include "scheduler.hpp"
 
-// Repeat::Repeat(int interval, IntervalUnit unit)
-// {
-
-// }
-
-// Repeat::Repeat(WeekSwitch ws, int hour, int min)
-// {
-
-// }
-
-
 Scheduler::Scheduler(TimeService & time_service)
 :m_time_service{time_service}
 {
@@ -23,7 +12,6 @@ void Scheduler::run()
   
     while( it != m_task_list.end() )
     {
-      //printf("Checking task...");
       (*it)->check();
       it++;
     }

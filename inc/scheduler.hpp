@@ -36,7 +36,6 @@ typedef struct
   int min;
 } Weekdays;
 
-
 typedef enum
 {
   INTERVAL_MICROSECOND,
@@ -69,28 +68,6 @@ typedef struct
   Datetime datetime;
   ExpirationType type;
 } Expiration;
-
-// typedef enum
-// {
-//   REPEAT_OFF,
-//   REPEAT_INTERVAL,
-//   REPEAT_WEEKDAYS
-// } RepeatType;
-
-// class Repeat
-// {
-// public:
-//   Repeat(int interval, IntervalUnit unit);
-//   Repeat(WeekSwitch ws, int hour, int min);
-
-//   // private:
-//   RepeatType type = REPEAT_OFF;
-//   bool runActionOnStart = false;
-//   int intervalValue;
-//   IntervalUnit intervalUnit;
-//   WeekSwitch weekSwitch;
-//   Expiration expiration;
-// };
 
 using Action = std::function<void(void)>;
 
@@ -180,9 +157,3 @@ private:
 bool operator==(Datetime dt1, Datetime dt2);
 
 #endif /* __SCHEDULER_HPP__ */
-
-/*
-Repeat let_repeat(1000, INTEVAL_MILISECONDS);
-Task("blink_status_led", toggle_led_func, led_repeat, sched);
-
-*/
