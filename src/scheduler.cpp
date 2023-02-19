@@ -1,27 +1,27 @@
 #include "scheduler.hpp"
 
-Repeat::Repeat(int interval, IntervalUnit unit)
-{
+// Repeat::Repeat(int interval, IntervalUnit unit)
+// {
 
-}
+// }
 
-Repeat::Repeat(WeekSwitch ws, int hour, int min)
-{
+// Repeat::Repeat(WeekSwitch ws, int hour, int min)
+// {
 
-}
+// }
 
 
-Scheduler::Scheduler(IDatetime & iD, IMillis & iM):
-iDatetime{iD}, iMillis{iM}
+Scheduler::Scheduler(TimeService & time_service)
+:m_time_service{time_service}
 {
 
 }
 
 void Scheduler::run()
 {
-  std::list<Task*>::iterator it = taskList.begin();
+  std::list<Task*>::iterator it = m_task_list.begin();
   
-    while( it != taskList.end() )
+    while( it != m_task_list.end() )
     {
       //printf("Checking task...");
       (*it)->check();
@@ -31,109 +31,102 @@ void Scheduler::run()
 
 bool Scheduler::addTask(Task * task)
 {
-  task->setIDatetime(&iDatetime);
-  task->setIMillis(&iMillis);
-
-  taskList.push_back(task);
+  task->init(m_time_service);
+  m_task_list.push_back(task);
   return true;
 }
 
-Task::Task(std::string name, Action* a, Datetime* dt, Repeat* r)
+Task::Task(std::string name, Action *action)
 {
-  action = a;
-  trigDatetime = dt;
+  m_name = name;
+  m_action = action;
 }
 
 Task::~Task()
 {
- delete(timer);
-}
 
-void Task::setIDatetime(IDatetime * iD)
-{
-  iDatetime = iD;
-}
-
-void Task::setIMillis(IMillis * iM)
-{
-  iMillis = iM;
 }
 
 void Task::enable()
 {
-  init();
-  enabled = true;
+  m_enabled = true;
 }
 
 void Task::disable()
 {
-  enabled = false;
+  m_enabled = false;
 }
-
 
 void Task::run()
 {
-  if(action)
+  if(m_action)
   {
-    (*action)();
+    (*m_action)();
   }  
 }
 
-void Task::check()
+IntervalTask::IntervalTask(std::string name, Action *action, Interval interval)
+:Task(name, action)
 {
-  if(enabled)
-  {
-    RepeatType repeat_type = repeat ? (repeat->type):(REPEAT_OFF);
-
-    switch (repeat_type)
-    {
-    case REPEAT_OFF:
-      checkDatetime();
-      break;
-    case REPEAT_INTERVAL:
-      checkInterval();
-      break;
-    case REPEAT_WEEKDAYS:
-      checkWeekday();
-      break;      
-    default:
-      /* code */
-      break;
-    }
-  }
+  m_interval = interval;
 }
 
-void Task::checkInterval()
+IntervalTask::~IntervalTask()
 {
-  if(!timer) return;
+  delete(m_timer);
+}
 
-  if(timer->done())
+void IntervalTask::init(TimeService & time_service)
+{
+  if(m_timer){return;}
+  m_timer = new Neotimer(*time_service.iMillis);
+}
+
+void IntervalTask::check()
+{
+  if(!m_timer) return;
+
+  if(m_timer->done())
   {
       run();
   } 
 }
 
-void Task::checkDatetime()
+DatetimeTask::DatetimeTask(std::string name, Action *action, Datetime datetime)
+:Task(name, action)
 {
-  if(!trigDatetime || !iDatetime) return;
+  m_datetime = datetime;
+}
+
+void DatetimeTask::init(TimeService & time_service)
+{
+ m_iDatetime = time_service.iDatetime;
+}
+
+void DatetimeTask::check()
+{
+  if(!m_iDatetime) return;
   
-  if((*trigDatetime) == iDatetime->get())
+  if((m_datetime) == m_iDatetime->get())
   {
     run();
   }
 }
 
-void Task::checkWeekday()
+WeekdayTask::WeekdayTask(std::string name, Action *action, Weekdays weekdays)
+:Task(name, action)
 {
-
+  m_weekdays = weekdays;
 }
 
-void Task::init()
+void WeekdayTask::init(TimeService & time_service)
 {
-  if(!timer)
-  {
-    timer = new Neotimer(*iMillis);
-  }
+ m_iDatetime = time_service.iDatetime;
+}
+
+void WeekdayTask::check()
+{
+
 }
 
 bool operator==(Datetime dt1, Datetime dt2)

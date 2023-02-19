@@ -29,6 +29,14 @@ typedef struct
   bool Sun = false;
 } WeekSwitch;
 
+typedef struct
+{
+  WeekSwitch days;
+  int hour;
+  int min;
+} Weekdays;
+
+
 typedef enum
 {
   INTERVAL_MICROSECOND,
@@ -40,7 +48,7 @@ typedef enum
   INTERVAL_WEEK,
   INTERVAL_MONTH,
   INTERVAL_YEAR
-} IntervalUnit;
+} TimeUnit;
 
 typedef enum
 {
@@ -51,6 +59,11 @@ typedef enum
 
 typedef struct tm Datetime;
 
+typedef struct {
+  uint32_t value;
+  TimeUnit unit;
+}Interval;
+
 typedef struct
 {
   int ocurrences;
@@ -58,27 +71,27 @@ typedef struct
   ExpirationType type;
 } Expiration;
 
-typedef enum
-{
-  REPEAT_OFF,
-  REPEAT_INTERVAL,
-  REPEAT_WEEKDAYS
-} RepeatType;
+// typedef enum
+// {
+//   REPEAT_OFF,
+//   REPEAT_INTERVAL,
+//   REPEAT_WEEKDAYS
+// } RepeatType;
 
-class Repeat
-{
-public:
-  Repeat(int interval, IntervalUnit unit);
-  Repeat(WeekSwitch ws, int hour, int min);
+// class Repeat
+// {
+// public:
+//   Repeat(int interval, IntervalUnit unit);
+//   Repeat(WeekSwitch ws, int hour, int min);
 
-  // private:
-  RepeatType type = REPEAT_OFF;
-  bool runActionOnStart = false;
-  int intervalValue;
-  IntervalUnit intervalUnit;
-  WeekSwitch weekSwitch;
-  Expiration expiration;
-};
+//   // private:
+//   RepeatType type = REPEAT_OFF;
+//   bool runActionOnStart = false;
+//   int intervalValue;
+//   IntervalUnit intervalUnit;
+//   WeekSwitch weekSwitch;
+//   Expiration expiration;
+// };
 
 using Action = std::function<void(void)>;
 
@@ -89,47 +102,75 @@ class IDatetime
     virtual Datetime get() = 0;
 };
 
+typedef struct
+{
+  IDatetime * iDatetime;
+  IMillis * iMillis;
+} TimeService;
+
 class Task
 {
 public:
-  //Task(std::string name, Action *a, Datetime *dt);
-  Task(std::string name, Action *a, Datetime *dt, Repeat *r);  
-  //Task(std::string name, Action *a, Interval *interval);
-  //Task(std::string name, Action *a, Interval *interval, Repeat *r);
+  Task(std::string name, Action *action);
   ~Task();
-  void setIDatetime(IDatetime * iDatetime);
-  void setIMillis(IMillis * iMillis);
   void enable();
   void disable();
   void run();
+  virtual void init(TimeService & time_service) = 0;
+  virtual void check() = 0;
+
+private:
+  std::string  m_name;
+  Action * m_action = nullptr;  
+  bool m_enabled = false;  
+};
+
+class IntervalTask: public Task
+{
+public:
+  IntervalTask(std::string name, Action *action, Interval interval);
+  ~IntervalTask();    
+  void init(TimeService & time_service);
   void check();
 
 private:
-  Action *action = nullptr;
-  Datetime *trigDatetime = nullptr;
-  Repeat *repeat = nullptr;
-  Neotimer * timer = nullptr;
-  IDatetime * iDatetime = nullptr;
-  IMillis * iMillis = nullptr;
-  bool enabled = false;
+  Interval m_interval;
+  Neotimer * m_timer = nullptr;
+};
 
-  void checkInterval();
-  void checkDatetime();
-  void checkWeekday();
-  void init();
+class DatetimeTask: public Task
+{
+public:
+  DatetimeTask(std::string name, Action *action, Datetime datetime);
+  void init(TimeService & time_service);
+  void check();
+private:
+  Datetime m_datetime;
+  IDatetime * m_iDatetime = nullptr;
+};
+
+class WeekdayTask: public Task
+{
+public:
+  WeekdayTask(std::string name, Action *action, Weekdays weekdays);
+  void init(TimeService & time_service);
+  void check();
+
+private:
+  Weekdays m_weekdays;
+  IDatetime * m_iDatetime = nullptr;
 };
 
 class Scheduler
 {
 public:
-  Scheduler(IDatetime & iDatetime, IMillis & iMillis);
+  Scheduler(TimeService & time_service);
   void run();
-  bool addTask(Task *task);
+  bool addTask(Task * task);
 
 private:
-  std::list<Task *> taskList;
-  IDatetime & iDatetime;
-  IMillis & iMillis;
+  std::list<Task *> m_task_list;
+  TimeService & m_time_service;
 };
 
 bool operator==(Datetime dt1, Datetime dt2);

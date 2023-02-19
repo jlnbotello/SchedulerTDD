@@ -31,7 +31,11 @@ public:
     Datetime datetime;
     MockIDatetime mockIDatetime;
     MockIMillis mockIMillis;
-    Scheduler scheduler = Scheduler(mockIDatetime, mockIMillis);
+    TimeService timeService = {
+      .iDatetime = &mockIDatetime,
+      .iMillis = &mockIMillis
+    };
+    Scheduler scheduler = Scheduler(timeService);
 };
 
 TEST_F(SchedulerTest, Basic)
@@ -53,7 +57,8 @@ TEST_F(SchedulerTest, RunNullActionIsSafe)
 {
   //Action action = [this]() { return mockAction.Call(); };
   Action action = std::bind(&MockAction::Call, &mockAction);
-  Task task = Task("RunActionNow", nullptr, nullptr, nullptr);  
+  Datetime task_dt;
+  DatetimeTask task = DatetimeTask("RunActionNow", nullptr, task_dt);  
   
   EXPECT_CALL(mockAction, Call()).Times(0);
 
@@ -63,7 +68,8 @@ TEST_F(SchedulerTest, RunNullActionIsSafe)
 TEST_F(SchedulerTest, RunActionNow)
 {
   Action action = std::bind(&MockAction::Call, &mockAction);
-  Task task = Task("RunActionNow", &action, nullptr, nullptr);  
+  Datetime task_dt;
+  DatetimeTask task = DatetimeTask("RunActionNow", &action, task_dt);  
   
   EXPECT_CALL(mockAction, Call()).Times(1);
 
@@ -79,7 +85,7 @@ TEST_F(SchedulerTest, NotOnTimeNotTriggered)
   //printf ("Current local time and date: %s", asctime(timeInfo));
   Datetime task_dt = (*timeInfo);
   
-  Task task = Task("OneTimeAlarm", &action, &task_dt, nullptr);
+  DatetimeTask task = DatetimeTask("OneTimeAlarm", &action, task_dt);
 
   EXPECT_CALL(mockAction, Call()).Times(0);
   
@@ -102,7 +108,7 @@ TEST_F(SchedulerTest, OnTimeTriggered )
   //printf ("Current local time and date: %s", asctime(timeInfo));
   Datetime task_dt = (*timeInfo);
  
-  Task task = Task("OneTimeAlarm", &action, &task_dt, nullptr); 
+  DatetimeTask task = DatetimeTask("OneTimeAlarm", &action, task_dt); 
 
   EXPECT_CALL(mockAction, Call()).Times(1);
   
