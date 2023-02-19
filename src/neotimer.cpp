@@ -69,16 +69,17 @@ bool Neotimer::repeat(int times, unsigned long _t){
  * }
  */
 bool Neotimer::repeat(){
-  if(this->done()){
+  bool ret = false;
+	if(this->done()){
     this->reset();
-    return true;
+    ret = true;
   }
 	if(!this->_timer.started){
 		this->_timer.last = _millis.get();
 		this->_timer.started = true;
     this->_waiting = true;
   }
-  return false;
+  return ret;
 }
 
 void Neotimer::repeatReset(){
