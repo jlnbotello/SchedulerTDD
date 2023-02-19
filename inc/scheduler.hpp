@@ -61,6 +61,8 @@ typedef struct tm Datetime;
 
 typedef unsigned long Interval;
 
+typedef int Repeat;
+
 typedef struct
 {
   int ocurrences;
@@ -126,15 +128,18 @@ class IntervalTask: public Task
 {
 public:
   IntervalTask(std::string name, Action *action, Interval interval);
+  IntervalTask(std::string name, Action *action, Interval interval, Repeat n);
   ~IntervalTask();    
   void init(TimeService & time_service);
   void enable();
   void disable();
   void check();
+  static const int RUN_FOREVER = NEOTIMER_UNLIMITED;
 
 private:
   Interval m_interval;
   Neotimer * m_timer = nullptr;
+  Repeat m_repeat = 0;
 };
 
 class DatetimeTask: public Task

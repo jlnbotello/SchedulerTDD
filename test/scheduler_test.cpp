@@ -123,47 +123,90 @@ TEST_F(SchedulerTest, DatetimeExpired )
 
 TEST_F(SchedulerTest, IntervalNotExpired)
 {
-  Action action = std::bind(&MockAction::Call, &mockAction);
   Interval interval_ms = 500;
-  unsigned long now = interval_ms-1; // 1 ms before expiration
-  int run_n_times = 2;
+  unsigned long now = 0;
+  const int running_ms = interval_ms-1;
+  int expected_times_called = 0;
   
+  Action action = std::bind(&MockAction::Call, &mockAction);
   IntervalTask task = IntervalTask("<task_name>", &action, interval_ms); 
 
-  EXPECT_CALL(mockAction, Call()).Times(0); // never called
+  EXPECT_CALL(mockAction, Call()).Times(expected_times_called);
 
   scheduler.addTask(&task);
   task.enable();
 
-  mockIMillis.set(now);
-
-  while(run_n_times)
+  while(now <= running_ms)
   {
     scheduler.run();
-    run_n_times--;
+    mockIMillis.set(++now);
   }
-  
 }
 
 TEST_F(SchedulerTest, IntervalExpired)
 {
-  Action action = std::bind(&MockAction::Call, &mockAction);
   Interval interval_ms = 500;
-  unsigned long now = interval_ms; //expired
-  int run_n_times = 2;
+  unsigned long now = 0;
+  const int running_ms = interval_ms;
+  int expected_times_called = 1;
   
+  Action action = std::bind(&MockAction::Call, &mockAction);
   IntervalTask task = IntervalTask("<task_name>", &action, interval_ms); 
 
-  EXPECT_CALL(mockAction, Call()).Times(1); // called once
+  EXPECT_CALL(mockAction, Call()).Times(expected_times_called);
 
   scheduler.addTask(&task);
   task.enable();
 
-  mockIMillis.set(now);
-  
-  while(run_n_times)
+  while(now <= running_ms)
   {
     scheduler.run();
-    run_n_times--;
+    mockIMillis.set(++now);
+  }
+}
+
+TEST_F(SchedulerTest, IntervalRepeatThreeTimes)
+{
+  Interval interval_ms = 300;
+  unsigned long now = 0;
+  const int running_ms = 1000;
+  int expected_times_called = running_ms/interval_ms;
+  const int repeat = expected_times_called;
+
+  Action action = std::bind(&MockAction::Call, &mockAction);
+  IntervalTask task = IntervalTask("<task_name>", &action, interval_ms, repeat); 
+
+  EXPECT_CALL(mockAction, Call()).Times(expected_times_called);
+
+  scheduler.addTask(&task);
+  task.enable();
+    
+  while(now <= running_ms)
+  {
+    scheduler.run();
+    mockIMillis.set(++now);
+  } 
+}
+
+TEST_F(SchedulerTest, IntervalRepeatForever)
+{
+  Interval interval_ms = 2;
+  unsigned long now = 0;
+  const int running_ms = 1000;
+  int expected_times_called = running_ms/interval_ms;
+  const int repeat = expected_times_called;
+
+  Action action = std::bind(&MockAction::Call, &mockAction);
+  IntervalTask task = IntervalTask("<task_name>", &action, interval_ms, IntervalTask::RUN_FOREVER); 
+
+  EXPECT_CALL(mockAction, Call()).Times(expected_times_called);
+
+  scheduler.addTask(&task);
+  task.enable();
+    
+  while(now <= running_ms)
+  {
+    scheduler.run();
+    mockIMillis.set(++now);
   } 
 }

@@ -71,6 +71,13 @@ IntervalTask::IntervalTask(std::string name, Action *action, Interval interval)
   m_interval = interval;
 }
 
+IntervalTask::IntervalTask(std::string name, Action *action, Interval interval, Repeat n)
+:IntervalTask(name, action, interval)
+{
+  m_interval = interval;
+  m_repeat = n;
+}
+
 IntervalTask::~IntervalTask()
 {
   delete(m_timer);
@@ -98,12 +105,21 @@ void IntervalTask::init(TimeService & time_service)
 void IntervalTask::check()
 {
   if(!m_timer) return;
-
-  if(m_timer->done())
+  if(!!m_repeat)
   {
-      run();
-      disable();
-  } 
+    if(m_timer->repeat(m_repeat))
+    {
+        run();
+    }
+  }
+  else
+  {
+    if(m_timer->done())
+    {
+        run();
+        disable();
+    }
+  }
 }
 
 DatetimeTask::DatetimeTask(std::string name, Action *action, Datetime datetime)
