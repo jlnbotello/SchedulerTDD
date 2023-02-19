@@ -76,10 +76,23 @@ IntervalTask::~IntervalTask()
   delete(m_timer);
 }
 
+void IntervalTask::enable()
+{
+  Task::enable();
+  m_timer->start();
+
+}
+
+void IntervalTask::disable()
+{
+  Task::disable();
+  m_timer->stop();
+}
+
 void IntervalTask::init(TimeService & time_service)
 {
   if(m_timer){return;}
-  m_timer = new Neotimer(*time_service.iMillis);
+  m_timer = new Neotimer(*time_service.iMillis, m_interval);
 }
 
 void IntervalTask::check()
@@ -89,6 +102,7 @@ void IntervalTask::check()
   if(m_timer->done())
   {
       run();
+      disable();
   } 
 }
 

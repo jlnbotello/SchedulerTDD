@@ -59,10 +59,7 @@ typedef enum
 
 typedef struct tm Datetime;
 
-typedef struct {
-  uint32_t value;
-  TimeUnit unit;
-}Interval;
+typedef unsigned long Interval;
 
 typedef struct
 {
@@ -113,8 +110,8 @@ class Task
 public:
   Task(std::string name, Action *action);
   ~Task();
-  void enable();
-  void disable();
+  virtual void enable();
+  virtual void disable();
   void run();
   virtual void init(TimeService & time_service) = 0;
   virtual void check() = 0;
@@ -131,6 +128,8 @@ public:
   IntervalTask(std::string name, Action *action, Interval interval);
   ~IntervalTask();    
   void init(TimeService & time_service);
+  void enable();
+  void disable();
   void check();
 
 private:
