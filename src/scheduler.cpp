@@ -131,10 +131,10 @@ void DatetimeTask::check()
   }
 }
 
-WeekdayTask::WeekdayTask(std::string name, Action *action, Weekdays weekdays)
+WeekdayTask::WeekdayTask(std::string name, Action *action, WeekRepeat repeat)
 :Task(name, action)
 {
-  m_weekdays = weekdays;
+  m_repeat = repeat;
 }
 
 void WeekdayTask::init(TimeService & time_service)
@@ -143,8 +143,24 @@ void WeekdayTask::init(TimeService & time_service)
 }
 
 void WeekdayTask::check()
-{
+{  
+  if(!m_iDatetime) return;
 
+  uint8_t week_mask = SUN; 
+  Datetime now =  m_iDatetime->get();
+  
+  if(now.tm_wday > 0)
+  {
+    week_mask = (uint8_t)(1 << (now.tm_wday-1));
+  }
+  
+  if((week_mask & m_repeat.week.mask) &&
+     (now.tm_hour == m_repeat.hour) &&
+     (now.tm_min == m_repeat.min) &&
+     (now.tm_sec == m_repeat.sec))
+  {
+    run();
+  }    
 }
 
 bool operator==(Datetime dt1, Datetime dt2)

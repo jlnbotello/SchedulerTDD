@@ -18,23 +18,37 @@
 #include <list>
 #include "neotimer.hpp"
 
-typedef struct
+#define MON (uint8_t)(1<<0)
+#define TUE (uint8_t)(1<<1) 
+#define WED (uint8_t)(1<<2)
+#define THU (uint8_t)(1<<3)
+#define FRI (uint8_t)(1<<4)
+#define SAT (uint8_t)(1<<5)
+#define SUN (uint8_t)(1<<6)
+
+typedef union
 {
-  bool Mon = false;
-  bool Tue = false;
-  bool Wed = false;
-  bool Thu = false;
-  bool Fri = false;
-  bool Sat = false;
-  bool Sun = false;
-} WeekSwitch;
+  struct
+  {
+    uint8_t monday: 1;
+    uint8_t tuesday: 1;
+    uint8_t wednesday: 1;
+    uint8_t thursday: 1;
+    uint8_t friday: 1;
+    uint8_t saturday: 1;
+    uint8_t sunday: 1;
+    uint8_t RESERVED: 1;
+  }day;
+  uint8_t mask;
+}week_t;
 
 typedef struct
 {
-  WeekSwitch days;
-  int hour;
-  int min;
-} Weekdays;
+  week_t week;
+  uint8_t hour;
+  uint8_t min;
+  uint8_t sec;
+} WeekRepeat;
 
 typedef enum
 {
@@ -133,12 +147,12 @@ private:
 class WeekdayTask: public Task
 {
 public:
-  WeekdayTask(std::string name, Action *action, Weekdays weekdays);
+  WeekdayTask(std::string name, Action *action, WeekRepeat repeat);
   void init(TimeService & time_service);
   void check();
 
 private:
-  Weekdays m_weekdays;
+  WeekRepeat m_repeat;
   IDatetime * m_iDatetime = nullptr;
 };
 

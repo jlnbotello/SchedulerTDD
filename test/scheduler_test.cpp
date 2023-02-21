@@ -11,7 +11,7 @@ public:
   Datetime get(){return _datetime;};
   void set(Datetime datetime){_datetime = datetime;};
 private:
-  Datetime _datetime;  
+  Datetime _datetime = {0};  
 };
 
 class  MockIMillis: public IMillis
@@ -208,5 +208,69 @@ TEST_F(SchedulerTest, IntervalRepeatForever)
   {
     scheduler.run();
     mockIMillis.set(++now);
+  } 
+}
+
+TEST_F(SchedulerTest, WeekdayEachMondayAt1010)
+{
+  WeekRepeat repeat = {0};
+  time_t start_time = 1676932761; // 20 feb 2023 @ 10:39pm
+  Datetime * now = localtime(&start_time);
+  uint32_t month_seconds = 3600*24*7*4; // 4 weeks
+  int expected_calls = 4 * 1; // 4 weeks * 1 day
+  repeat.week.mask = MON;
+  repeat.hour = 10;
+  repeat.min = 10;
+  repeat.sec = 0; 
+
+  Action action = std::bind(&MockAction::Call, &mockAction);
+  WeekdayTask task = WeekdayTask("<task_name>", &action, repeat);
+
+  EXPECT_CALL(mockAction, Call()).Times(expected_calls);
+
+  mockIDatetime.set(*now);
+
+  scheduler.addTask(&task);
+  task.enable();
+
+  while(month_seconds)
+  {
+    scheduler.run();
+    month_seconds--;
+    start_time++;
+    now = localtime (&start_time);
+    mockIDatetime.set(*now);    
+  } 
+}
+
+TEST_F(SchedulerTest, WeekdayMonWedFriAt1200)
+{
+  WeekRepeat repeat = {0};
+  time_t start_time = 1676932761; // 20 feb 2023 @ 10:39pm
+  Datetime * now = localtime(&start_time);
+  uint32_t month_seconds = 3600*24*7*4; // 4 weeks
+  int expected_calls = 4 * 3; // 4 week * 3 days = 12 calls
+  repeat.week.mask = MON|WED|FRI;
+  repeat.hour = 12;
+  repeat.min = 0;
+  repeat.sec = 0; 
+
+  Action action = std::bind(&MockAction::Call, &mockAction);
+  WeekdayTask task = WeekdayTask("<task_name>", &action, repeat);
+
+  EXPECT_CALL(mockAction, Call()).Times(expected_calls);
+
+  mockIDatetime.set(*now);
+
+  scheduler.addTask(&task);
+  task.enable();
+
+  while(month_seconds)
+  {
+    scheduler.run();
+    month_seconds--;
+    start_time++;
+    now = localtime (&start_time);
+    mockIDatetime.set(*now);    
   } 
 }
